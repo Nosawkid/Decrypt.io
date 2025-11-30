@@ -1,8 +1,23 @@
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import CipherText from "./CipherText";
 
 const Hero = () => {
+  const slides = [
+    {
+      title: "ENCRYPT",
+      subtitle: "< Turn your messages into gibberish />",
+    },
+    {
+      title: "SEND",
+      subtitle: "< Fly it under the radar />",
+    },
+    {
+      title: "DECRYPT",
+      subtitle: "< Crack the code & read secrets />",
+    },
+  ];
   const containerRef = useRef(null);
 
   useGSAP(
@@ -36,28 +51,17 @@ const Hero = () => {
         className="relative h-40 w-full max-w-4xl flex justify-center items-center"
       >
         {/* Slide 1 */}
-        <div className="absolute w-full text-center opacity-0">
-          <h1 className="text-6xl md:text-9xl  tracking-tighter">ENCRYPT</h1>
-          <p className="text-sm md:text-2xl text-white/80 font-mono mt-4">
-            &lt; Turn your messages into gibberish /&gt;
-          </p>
-        </div>
-
-        {/* Slide 2 */}
-        <div className="absolute w-full text-center opacity-0">
-          <h1 className="text-6xl md:text-9xl  tracking-tighter">SEND</h1>
-          <p className="text-sm md:text-2xl text-white/80 font-mono mt-4">
-            &lt; Fly it under the radar /&gt;
-          </p>
-        </div>
-
-        {/* Slide 3 */}
-        <div className="absolute w-full text-center opacity-0">
-          <h1 className="text-6xl md:text-9xl  tracking-tighter">DECRYPT</h1>
-          <p className="text-sm md:text-2xl text-white/80 font-mono mt-4">
-            &lt; Crack the code & read secrets /&gt;
-          </p>
-        </div>
+        {slides.map((el, idx) => (
+          <div key={idx} className="absolute w-full text-center opacity-0">
+            <CipherText
+              text={el.title}
+              className={"text-6xl md:text-9xl  tracking-tighter"}
+            />
+            <p className="text-sm md:text-2xl text-white/80 font-mono mt-4">
+              {el.subtitle}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

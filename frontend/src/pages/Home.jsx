@@ -1,3 +1,4 @@
+import EncryptionDemo from "../components/EncryptionDemo";
 import Hero from "../components/Hero";
 import Working from "../components/Working";
 
@@ -6,6 +7,7 @@ const Home = () => {
     <div className="min-h-screen bg-black ">
       <Hero />
       <Working />
+      <EncryptionDemo />
     </div>
   );
 };
