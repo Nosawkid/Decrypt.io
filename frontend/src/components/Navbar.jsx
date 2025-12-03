@@ -11,7 +11,7 @@ const Navbar = () => {
     signOut: "Signout",
   };
 
-  const isUser = true;
+  const isUser = false;
 
   const [logoText, setLogoText] = useState(navItems.logo);
   const [loginText, setLoginText] = useState(navItems.login);
@@ -49,7 +49,7 @@ const Navbar = () => {
         {!isUser ? (
           <>
             {" "}
-            <Link to={"/login"}>
+            <Link to={"/home"}>
               {" "}
               <button
                 onMouseEnter={() => handleHover(navItems.login, setLoginText)}
