@@ -58,7 +58,7 @@ const MessageDisplayList = () => {
   ];
 
   return (
-    <>
+    <div className="overflow-y-auto h-screen">
       {messages.map((msg) => (
         <DisplayMessage key={msg.id} msg={msg} />
       ))}
@@ -71,7 +71,7 @@ const MessageDisplayList = () => {
       {messages.map((msg) => (
         <DisplayMessage key={msg.id} msg={msg} />
       ))}
-    </>
+    </div>
   );
 };
 

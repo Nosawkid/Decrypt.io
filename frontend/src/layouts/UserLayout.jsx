@@ -4,8 +4,8 @@ import SideNav from "../components/SideNav";
 
 const UserLayout = () => {
   return (
-    <div className="min-h-screen w-full bg-black flex ">
-      <div className=" hidden md:block"></div>
+    <div className="min-h-screen  bg-black flex ">
+      <div className=" "></div>
       <SideNav />
       <div className="flex-1 flex flex-col relative">
         <Navbar />

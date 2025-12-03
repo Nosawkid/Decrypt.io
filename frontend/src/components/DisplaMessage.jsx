@@ -1,4 +1,4 @@
-import { Lock, Unlock } from "lucide-react"; // Added Unlock for unencrypted msgs
+import { Lock, MoveRight, Unlock } from "lucide-react"; // Added Unlock for unencrypted msgs
 import React from "react";
 
 const DisplayMessage = ({ msg }) => {
@@ -49,7 +49,8 @@ const DisplayMessage = ({ msg }) => {
         </div>
 
         <div className="hidden md:block text-xs md:text-sm text-white/30 whitespace-nowrap font-mono group-hover:text-white">
-          {msg.sendDate}
+          <div className="group-hover:hidden"> {msg.sendDate}</div>
+          <MoveRight className="font-bold hidden group-hover:block group-hover:text-green-400 animate-pulse" />
         </div>
       </div>
     </div>

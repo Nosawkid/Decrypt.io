@@ -5,6 +5,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import UserLayout from "./layouts/UserLayout";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Starred from "./pages/Starred";
+import Lost from "./pages/Lost";
+import NewTransmission from "./pages/NewTransmission";
 
 const router = createBrowserRouter([
   {
@@ -26,12 +30,28 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/home",
     element: <UserLayout />,
     children: [
       {
+        path: "/home",
         index: true,
         element: <Dashboard />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      {
+        path: "starred",
+        element: <Starred />,
+      },
+      {
+        path: "lost",
+        element: <Lost />,
+      },
+      {
+        path: "/new",
+        element: <NewTransmission />,
       },
     ],
   },
