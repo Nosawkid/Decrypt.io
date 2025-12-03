@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Signup = () => {
   return (
-    <div className="min-h-screen w-full bg-black flex  justify-center items-center font-Rubik ">
+    <div className="min-h-screen w-full bg-black flex  pt-20 justify-center items-center font-Rubik ">
       <div className="max-w-md w-full border bg-white/5 backdrop-blur-lg border-white/10 text-white p-8 rounded-xl shadow-2 ">
         <div className="mb-8 text-center">
           <h3 className="font-bold text-2xl md:text-3xl tracking-widest">
