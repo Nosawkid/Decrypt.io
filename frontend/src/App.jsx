@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Starred from "./pages/Starred";
 import Lost from "./pages/Lost";
 import NewTransmission from "./pages/NewTransmission";
+import TransmissionView from "./pages/TransmissionView";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
       {
         path: "/new",
         element: <NewTransmission />,
+      },
+      {
+        path: "/transmission/:id",
+        element: <TransmissionView />,
       },
     ],
   },

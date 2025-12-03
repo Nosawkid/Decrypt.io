@@ -55,7 +55,7 @@ const Hero = () => {
           <div key={idx} className="absolute w-full text-center opacity-0">
             <CipherText
               text={el.title}
-              className={"text-6xl md:text-9xl  tracking-tighter"}
+              className={"text-6xl md:text-9xl  tracking-tighter select-none"}
             />
             <p className="text-sm md:text-2xl text-white/80 font-mono mt-4">
               {el.subtitle}

@@ -28,7 +28,7 @@ const Navbar = () => {
   return (
     <nav
       className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-8 py-4 
-                    bg-black/30 backdrop-blur-md border-b border-white/10 font-mono"
+                    bg-black/30 backdrop-blur-md border-b border-white/10 font-mono select-none"
     >
       {/* Logo Section */}
       <div className="cursor-pointer group">
@@ -49,7 +49,7 @@ const Navbar = () => {
         {!isUser ? (
           <>
             {" "}
-            <Link to={"/home"}>
+            <Link to={"/login"}>
               {" "}
               <button
                 onMouseEnter={() => handleHover(navItems.login, setLoginText)}
