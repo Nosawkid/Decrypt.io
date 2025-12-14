@@ -10,11 +10,14 @@ import Starred from "./pages/Starred";
 import Lost from "./pages/Lost";
 import NewTransmission from "./pages/NewTransmission";
 import TransmissionView from "./pages/TransmissionView";
+import NotFound from "./pages/NotFound";
+import ErrorPage from "./pages/ErrorPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <GuestLayout />,
+    errorElement: <ErrorPage />,
     children: [
       {
         index: true,
@@ -32,10 +35,11 @@ const router = createBrowserRouter([
   },
   {
     element: <UserLayout />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "/home",
-        index: true,
+
         element: <Dashboard />,
       },
       {
@@ -59,6 +63,10 @@ const router = createBrowserRouter([
         element: <TransmissionView />,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 
