@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser'
 import connectDB from './configs/Db.js'
 import { errorHandler, notFound } from './middlewares/errorMiddlewares.js'
 import authRoutes from './routes/auth.js'
+import transmissionRoutes from './routes/transmission.js'
 dotenv.config()
 
 
@@ -22,6 +23,7 @@ app.get("/", () => {
 })
 // Auth Routes
 app.use("/api/auth", authRoutes)
+app.use("/api/transmission", transmissionRoutes)
 
 
 
