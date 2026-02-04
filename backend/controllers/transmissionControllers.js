@@ -1,195 +1,223 @@
 import User from "../models/User.js";
 import Transmission from "../models/Transmission.js";
-import CryptoJs from 'crypto-js'
+import CryptoJs from 'crypto-js';
 
-
+// --- 1. SEND TRANSMISSION ---
+// --- 1. SEND TRANSMISSION ---
 export const sendTransmission = async (req, res, next) => {
-    const { subject, transmission, encType, encCode, hint, agentId } = req.body
-    const receiver = await User.findOne({ agentId })
-    if (!receiver) {
-        return next(new Error("Invalid receiver mail"))
-    }
-
-
-    let encryptedContent = ""
-
-    if (encType === "caeser") {
-        const text = transmission.toUpperCase()
-        const shift = Number(encCode)
-
-        for (let i = 0; i < text.length; i++) {
-            const ch = text[i]
-            if (ch >= 'A' && ch <= 'Z') {
-                const coded = ((ch.charCodeAt(0) - 65 + shift) % 26) + 65
-                encryptedContent += String.fromCharCode(coded);
-            } else {
-                encryptedContent += ch;
-            }
-        }
-    } else if (encType === "aes") {
-        encryptedContent = CryptoJs.AES.encrypt(transmission, encCode).toString()
-    }
-
-    const newTransmission = new Transmission({
-        subject,
-        transmission: encryptedContent,
-        encType,
-        encCode,
-        hint,
-        senderId: req.user._id,
-        receiverId: receiver._id
-    })
-
-    await newTransmission.save()
-    res.status(201).json({
-        success: true,
-        message: "Transmission encrypted and sent successfully.",
-        data: {
-            id: newTransmission._id,
-            target: receiver.agentId,
-            status: "ENCRYPTED"
-        }
-    });
-}
-
-export const getMyTransmissions = async (req, res, next) => {
-    const transmissions = await Transmission.find({ receiverId: req.user._id })
-        .populate("senderId", "username agentId")
-        .sort({ createdAt: -1 });
-    res.status(200).json({
-        message: "Transmissions fetched",
-        transmissions
-    });
-}
-
-export const readTransmission = async (req, res, next) => {
-    const { id } = req.params
-    const { decKey } = req.body
-    const transmission = await Transmission.findById(id)
-    if (!transmission) {
-        return next(new Error("Invalid transmission"))
-    }
-    if (transmission.failedAttempts >= 3) {
-        return res.status(400).json({ message: "Message cannot be unlocked" })
-    }
-    if (decKey != transmission.encCode) {
-        transmission.failedAttempts += 1;
-        await transmission.save()
-        return res.status(400).json({ message: "Invalid key" })
-    }
-
-    let decryptedContent = ""
-    if (transmission.encType === "caesar") {
-
-        const text = transmission.transmission.toUpperCase()
-
-        for (let i = 0; i < text.length; i++) {
-            const ch = text[i]
-            if (ch >= 'A' && ch <= "Z") {
-                const coded = ((ch.charCodeAt(0) - 65 - decKey + 26) % 26) + 65
-                decryptedContent += String.fromCharCode(coded)
-            } else {
-                decryptedContent += ch
-            }
-        }
-    } else if (transmission.encType === "aes") {
-        const bytes = CryptoJs.AES.decrypt(transmission.transmission, decKey)
-        decryptedContent = bytes.toString(CryptoJs.enc.Utf8)
-
-        if (!decryptedContent) throw new Error("Malformed decryption");
-    }
-    transmission.isRead = true
-    await transmission.save()
-    res.status(200).json({ message: "Message decrypted", decryptedContent })
-
-
-}
-
-// --- 1. GET SENT MESSAGES (Outbox) ---
-export const getSentTransmissions = async (req, res, next) => {
     try {
-        const transmissions = await Transmission.find({ senderId: req.user._id })
-            .populate("receiverId", "username agentId") // Show who I sent it TO
-            .sort({ createdAt: -1 })
-            .select("-encCode"); // Security: Don't send keys in list view
+        const { subject, transmission, encType, encCode, hint, agentId } = req.body;
 
-        res.status(200).json({
-            message: "Sent transmissions fetched",
-            transmissions
+        const receiver = await User.findOne({ agentId });
+        if (!receiver) {
+            res.status(404);
+            return next(new Error("Target Agent ID not found on the network."));
+        }
+
+        let encryptedContent = "";
+        // 1. Determine the standardized type first
+        let finalEncType = encType;
+
+        // Handle both spellings just in case
+        if (encType === "caesar" || encType === "caeser") {
+            finalEncType = "caesar"; // Standardize spelling
+
+            const text = transmission.toUpperCase();
+            const shift = Number(encCode);
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (ch >= 'A' && ch <= 'Z') {
+                    const coded = ((ch.charCodeAt(0) - 65 + shift) % 26) + 65;
+                    encryptedContent += String.fromCharCode(coded);
+                } else { encryptedContent += ch; }
+            }
+        } else if (encType === "aes") {
+            finalEncType = "aes"; // Standardize
+            encryptedContent = CryptoJs.AES.encrypt(transmission, encCode).toString();
+        }
+
+        const newTransmission = new Transmission({
+            subject,
+            transmission: encryptedContent,
+            encType: finalEncType, // <--- CHANGED: Use the variable, don't hardcode "caesar"
+            encCode,
+            hint,
+            senderId: req.user._id,
+            receiverId: receiver._id
         });
+
+        await newTransmission.save();
+        res.status(201).json({ success: true, data: newTransmission });
     } catch (error) {
         next(error);
     }
 };
 
-// --- 2. GET STARRED MESSAGES (Wishlist/Important) ---
+// --- 2. GET INBOX (My Received Messages) ---
+export const getMyTransmissions = async (req, res, next) => {
+    try {
+        const transmissions = await Transmission.find({
+            receiverId: req.user._id,
+            // Optional: Hide burned messages from main inbox if you want
+            // failedAttempts: { $lt: 3 } 
+        })
+            .populate("senderId", "username agentId")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ transmissions });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// --- 3. GET SENT (My Outgoing Messages) ---
+export const getSentTransmissions = async (req, res, next) => {
+    try {
+        const transmissions = await Transmission.find({ senderId: req.user._id })
+            .populate("receiverId", "username agentId")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ transmissions });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// --- 4. GET STARRED (Wishlist) ---
 export const getStarredTransmissions = async (req, res, next) => {
     try {
         const transmissions = await Transmission.find({
             receiverId: req.user._id,
             isStarred: true
         })
-            .populate("senderId", "username agentId") // Show who sent it TO ME
-            .sort({ createdAt: -1 })
-            .select("-encCode");
+            .populate("senderId", "username agentId")
+            .sort({ createdAt: -1 });
 
-        res.status(200).json({
-            message: "Starred intel fetched",
-            transmissions
-        });
+        res.status(200).json({ transmissions });
     } catch (error) {
         next(error);
     }
 };
 
-// --- 3. GET LOST MESSAGES (Burned/Failed Decryption) ---
+// --- 5. GET LOST (Burned Messages) ---
 export const getLostTransmissions = async (req, res, next) => {
     try {
-        // Fetch messages explicitly marked as lost OR with too many failed attempts
         const transmissions = await Transmission.find({
             receiverId: req.user._id,
-            $or: [{ isLost: true }, { failedAttempts: { $gte: 3 } }]
+            $or: [
+                { failedAttempts: { $gte: 3 } },
+                { isLost: true }
+            ]
         })
             .populate("senderId", "username agentId")
-            .sort({ createdAt: -1 })
-            .select("-encCode");
+            .sort({ createdAt: -1 });
 
-        res.status(200).json({
-            message: "Lost transmissions fetched",
-            transmissions
-        });
+        res.status(200).json({ transmissions });
     } catch (error) {
         next(error);
     }
 };
 
-// --- 4. TOGGLE STAR STATUS ---
+// --- 6. TOGGLE STAR ---
 export const toggleStar = async (req, res, next) => {
     try {
         const { id } = req.params;
-
         const transmission = await Transmission.findById(id);
 
-        if (!transmission) {
-            res.status(404);
-            return next(new Error("Transmission not found"));
-        }
+        if (!transmission) return next(new Error("Transmission not found"));
 
-        // Security: Only the receiver can star a message
         if (transmission.receiverId.toString() !== req.user._id.toString()) {
             res.status(403);
             return next(new Error("Unauthorized access"));
         }
 
-        // Toggle logic
         transmission.isStarred = !transmission.isStarred;
         await transmission.save();
 
         res.status(200).json({
-            message: transmission.isStarred ? "Added to Starred" : "Removed from Starred",
+            message: transmission.isStarred ? "Marked Important" : "Mark Removed",
             isStarred: transmission.isStarred
         });
+    } catch (error) {
+        next(error);
+    }
+};
 
+// --- 7. READ/DECRYPT MESSAGE ---
+
+// ... imports
+
+// --- 7. READ/DECRYPT MESSAGE (UPDATED) ---
+export const readTransmission = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { decKey } = req.body;
+
+        const transmission = await Transmission.findById(id).populate("senderId", "username agentId");
+
+        if (!transmission) return next(new Error("Transmission not found"));
+
+        // Security Check
+        if (transmission.receiverId.toString() !== req.user._id.toString()) {
+            res.status(403);
+            return next(new Error("Unauthorized: This signal is not for you."));
+        }
+
+        // 1. FAST TRACK: If already decrypted, return immediately
+        if (transmission.encType === "none" || transmission.isRead) {
+            return res.status(200).json({
+                message: "Archive retrieved.",
+                decryptedContent: transmission.transmission, // Return stored plaintext
+                sender: transmission.senderId
+            });
+        }
+
+        // Check Burn Status
+        if (transmission.failedAttempts >= 3 || transmission.isLost) {
+            return res.status(400).json({ message: "Security Protocol: Data has been incinerated." });
+        }
+
+        // Verify Key
+        if (String(decKey) !== String(transmission.encCode)) {
+            transmission.failedAttempts += 1;
+            if (transmission.failedAttempts >= 3) transmission.isLost = true;
+            await transmission.save();
+            return res.status(400).json({
+                message: `Invalid Key. ${3 - transmission.failedAttempts} attempts remaining.`
+            });
+        }
+
+        // Decryption Logic
+        let decryptedContent = "";
+        if (transmission.encType.includes("caesar")) {
+            const text = transmission.transmission.toUpperCase();
+            const shift = Number(decKey);
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (ch >= 'A' && ch <= "Z") {
+                    const coded = ((ch.charCodeAt(0) - 65 - shift + 26) % 26) + 65;
+                    decryptedContent += String.fromCharCode(coded);
+                } else { decryptedContent += ch; }
+            }
+        } else if (transmission.encType === "aes") {
+            const bytes = CryptoJs.AES.decrypt(transmission.transmission, decKey);
+            decryptedContent = bytes.toString(CryptoJs.enc.Utf8);
+            if (!decryptedContent) throw new Error("Decryption yielded null result");
+        }
+
+        // 2. SAVE STATE: Store the plaintext and remove the lock
+        transmission.transmission = decryptedContent;
+        transmission.encType = "none"; // Mark as unencrypted
+        transmission.encCode = "";     // Clear the key (optional, for security)
+        transmission.isRead = true;
+
+        await transmission.save();
+
+        res.status(200).json({
+            message: "Decryption Successful",
+            decryptedContent,
+            sender: transmission.senderId
+        });
     } catch (error) {
         next(error);
     }

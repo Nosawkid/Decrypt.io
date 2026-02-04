@@ -14,7 +14,11 @@ const SideNav = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { label: "Sent Log", icon: <SendHorizontal size={20} />, path: "/home" },
+    {
+      label: "Transmissions",
+      icon: <SendHorizontal size={20} />,
+      path: "/home",
+    },
     { label: "Profile", icon: <UserPen size={20} />, path: "/profile" },
     { label: "Starred Intel", icon: <Star size={20} />, path: "/starred" },
     { label: "Lost Transmissions", icon: <FileX size={20} />, path: "/lost" },

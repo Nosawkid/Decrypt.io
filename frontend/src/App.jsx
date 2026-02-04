@@ -13,6 +13,9 @@ import TransmissionView from "./pages/TransmissionView";
 import NotFound from "./pages/NotFound";
 import ErrorPage from "./pages/ErrorPage";
 
+// IMPORT THE GUARDS
+import { ProtectedRoute, GuestRoute } from "./components/AuthRoutes";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -21,49 +24,64 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <Home />, // Public Landing Page (Accessible by anyone)
       },
+      // --- GUEST ONLY ROUTES (Login/Signup) ---
+      // If logged in, these will redirect to /home
       {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/signup",
-        element: <Signup />,
+        element: <GuestRoute />,
+        children: [
+          {
+            path: "/login",
+            element: <Login />,
+          },
+          {
+            path: "/signup",
+            element: <Signup />,
+          },
+        ],
       },
     ],
   },
+
+  // --- PROTECTED ROUTES (Dashboard, Profile, etc.) ---
+  // If NOT logged in, these will redirect to /login
   {
-    element: <UserLayout />,
+    element: <ProtectedRoute />,
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "/home",
-
-        element: <Dashboard />,
-      },
-      {
-        path: "profile",
-        element: <Profile />,
-      },
-      {
-        path: "starred",
-        element: <Starred />,
-      },
-      {
-        path: "lost",
-        element: <Lost />,
-      },
-      {
-        path: "/new",
-        element: <NewTransmission />,
-      },
-      {
-        path: "/transmission/:id",
-        element: <TransmissionView />,
+        element: <UserLayout />,
+        children: [
+          {
+            path: "/home",
+            element: <Dashboard />,
+          },
+          {
+            path: "profile",
+            element: <Profile />,
+          },
+          {
+            path: "starred",
+            element: <Starred />,
+          },
+          {
+            path: "lost",
+            element: <Lost />,
+          },
+          {
+            path: "/new",
+            element: <NewTransmission />,
+          },
+          {
+            path: "/transmission/:id",
+            element: <TransmissionView />,
+          },
+        ],
       },
     ],
   },
+
   {
     path: "*",
     element: <NotFound />,

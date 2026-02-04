@@ -5,6 +5,7 @@ import connectDB from './configs/Db.js'
 import { errorHandler, notFound } from './middlewares/errorMiddlewares.js'
 import authRoutes from './routes/auth.js'
 import transmissionRoutes from './routes/transmission.js'
+import userRoutes from './routes/user.js'
 dotenv.config()
 
 
@@ -23,7 +24,8 @@ app.get("/", () => {
 })
 // Auth Routes
 app.use("/api/auth", authRoutes)
-app.use("/api/transmission", transmissionRoutes)
+app.use("/api/transmissions", transmissionRoutes)
+app.use("/api/users", userRoutes)
 
 
 

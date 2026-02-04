@@ -14,19 +14,23 @@ const transmissionSchema = new mongoose.Schema(
         },
         encType: {
             type: String,
-            enum: ["caesar", "aes"],
+            // UPDATED: Added "none" to allow saving decrypted messages
+            enum: ["caesar", "aes", "none"],
             required: true,
         },
         encCode: {
-            type: String, // String to support both numbers and passwords
-            required: true,
+            type: String,
+            // UPDATED: Removed 'required: true' so we can clear the key after decryption
             validate: {
                 validator: function (value) {
+                    // Only validate if we are actually encrypting
+                    if (this.encType === "none") return true;
+
                     if (this.encType === "caesar") {
                         const shift = Number(value);
                         return !isNaN(shift) && shift >= 1 && shift <= 25;
                     }
-                    return value.length > 0;
+                    return value && value.length > 0;
                 },
                 message: "Invalid encryption code provided.",
             },
@@ -48,14 +52,12 @@ const transmissionSchema = new mongoose.Schema(
 
         failedAttempts: {
             type: Number,
-            default: 0, // Starts at 0
+            default: 0,
         },
         isLost: {
             type: Boolean,
-            default: false, // Becomes true if failedAttempts > 3
+            default: false,
         },
-
-        // UI Flags
         isRead: { type: Boolean, default: false },
         isStarred: { type: Boolean, default: false },
     },
